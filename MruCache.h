@@ -117,7 +117,7 @@ namespace DZCodeChallangeMRU
         // Max number of elements to keep in the cache
         size_t m_maxSize;
 
-        // A hash map between key and value to enable look up in O(N)
+        // A hash map between key and value to enable look up in O(const)
         std::unordered_map<const K, typename std::list<ListEntryType>::iterator> m_search;
 
         // List of pointers to held elements. The list is kept in access sequence order
