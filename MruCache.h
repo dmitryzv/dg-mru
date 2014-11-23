@@ -1,8 +1,8 @@
 #pragma once
 
 #include <list>
-#include <map>
 #include <memory>
+#include <unordered_map>
 #include <Windows.h>
 
 namespace DZCodeChallangeMRU
@@ -117,8 +117,8 @@ namespace DZCodeChallangeMRU
         // Max number of elements to keep in the cache
         size_t m_maxSize;
 
-        // A map between key and value to enable look up in O(logN)
-        std::map<const K, typename std::list<ListEntryType>::iterator> m_search;
+        // A hash map between key and value to enable look up in O(N)
+        std::unordered_map<const K, typename std::list<ListEntryType>::iterator> m_search;
 
         // List of pointers to held elements. The list is kept in access sequence order
         //  from most to least recent
