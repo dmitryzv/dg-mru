@@ -92,9 +92,13 @@ namespace DZCodeChallangeMRU
 
             if (m_search.end() != found)
             {
-                m_ordered.splice(m_ordered.begin(), m_ordered, found->second);
+                if (found->second != m_ordered.begin())
+                {
+                    // Move the element to the head of the ordered list
+                    m_ordered.splice(m_ordered.begin(), m_ordered, found->second);
 
-                found->second = m_ordered.begin();
+                    found->second = m_ordered.begin();
+                }
 
                 return found->second->second;
             }
@@ -107,14 +111,14 @@ namespace DZCodeChallangeMRU
 
         // Max number of elements to keep in the cache
         size_t m_maxSize;
-        
+
         // A map between key and value to enable look up in O(logN)
         std::map<const K, typename std::list<ListEntryType>::iterator> m_search;
-        
+
         // List of pointers to held elements. The list is kept in access sequence order
         //  from most to least recent
         std::list<ListEntryType> m_ordered;
-        
+
         // Access lock 
         SRWLOCK m_lock;
     };
