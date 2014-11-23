@@ -7,7 +7,7 @@
 
 namespace DZCodeChallangeMRU
 {
-    // To simplify locking/unlocking and avoid unreleased locks in case of an exxception
+    // To simplify locking/unlocking and avoid unreleased locks in case of an exception
     //  use helper class that aquires lock in constructor and releases in destructor
     //  kind of "Smart Lock"
     class AutoExlusiveSRWLock
@@ -49,6 +49,11 @@ namespace DZCodeChallangeMRU
         //  Returns:  void
         void insert(const K& key, V& value)
         {
+            if (0 >= m_maxSize)
+            {
+                return;
+            }
+            
             AutoExlusiveSRWLock lock(&m_lock);
 
             auto found = m_search.find(key);
