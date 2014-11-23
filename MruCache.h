@@ -80,7 +80,7 @@ namespace DZCodeChallangeMRU
         //      its order for cache removal
         //  Parameters :
         //    const K& key  - key of the element
-        //  Returns:  void
+        //  Returns: 
         //    std::shared_ptr<V> - value of the requested element. If an element with a requested key
         //                         is not in the cache nullptr is returned. Note that the returned type
         //                         is a shared_ptr and not a copy of the element. The 
