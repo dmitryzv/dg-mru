@@ -1,13 +1,13 @@
 #pragma once
 
 #include <list>
+#include <map>
 #include <memory>
-#include <unordered_map>
 #include <Windows.h>
 
 namespace DZCodeChallangeMRU
 {
-    // To simplify locking/unlocking and avoid unreleased locks in case of an exception
+    // To simplify locking/unlocking and avoid unreleased locks in case of an exxception
     //  use helper class that aquires lock in constructor and releases in destructor
     //  kind of "Smart Lock"
     class AutoExlusiveSRWLock
@@ -53,7 +53,7 @@ namespace DZCodeChallangeMRU
             {
                 return;
             }
-            
+
             AutoExlusiveSRWLock lock(&m_lock);
 
             auto found = m_search.find(key);
@@ -85,7 +85,7 @@ namespace DZCodeChallangeMRU
         //      its order for cache removal
         //  Parameters :
         //    const K& key  - key of the element
-        //  Returns: 
+        //  Returns:  void
         //    std::shared_ptr<V> - value of the requested element. If an element with a requested key
         //                         is not in the cache nullptr is returned. Note that the returned type
         //                         is a shared_ptr and not a copy of the element. The 
@@ -117,8 +117,8 @@ namespace DZCodeChallangeMRU
         // Max number of elements to keep in the cache
         size_t m_maxSize;
 
-        // A hash map between key and value to enable look up in O(const)
-        std::unordered_map<const K, typename std::list<ListEntryType>::iterator> m_search;
+        // A map between key and value to enable look up in O(logN)
+        std::map<const K, typename std::list<ListEntryType>::iterator> m_search;
 
         // List of pointers to held elements. The list is kept in access sequence order
         //  from most to least recent
