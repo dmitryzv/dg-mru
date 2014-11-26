@@ -1,13 +1,13 @@
 #pragma once
 
 #include <list>
-#include <map>
+#include <unordered_map>
 #include <memory>
 #include <Windows.h>
 
 namespace DZCodeChallangeMRU
 {
-    // To simplify locking/unlocking and avoid unreleased locks in case of an exxception
+    // To simplify locking/unlocking and avoid unreleased locks in case of an exception
     //  use helper class that aquires lock in constructor and releases in destructor
     //  kind of "Smart Lock"
     class AutoExlusiveSRWLock
@@ -22,6 +22,23 @@ namespace DZCodeChallangeMRU
         ~AutoExlusiveSRWLock()
         {
             ReleaseSRWLockExclusive(m_lock);
+        }
+    private:
+        PSRWLOCK m_lock;
+    };
+
+    class AutoSharedSRWLock
+    {
+    public:
+        AutoSharedSRWLock(PSRWLOCK lock)
+            : m_lock(lock)
+        {
+            AcquireSRWLockShared(m_lock);
+        }
+
+        ~AutoSharedSRWLock()
+        {
+            ReleaseSRWLockShared(m_lock);
         }
     private:
         PSRWLOCK m_lock;
@@ -53,27 +70,35 @@ namespace DZCodeChallangeMRU
             {
                 return;
             }
+            
+            std::unordered_map<K, typename std::list<ListEntryType>::iterator>::iterator found;
 
-            AutoExlusiveSRWLock lock(&m_lock);
-
-            auto found = m_search.find(key);
-
-            if (m_search.end() != found)
             {
-                m_ordered.erase(found->second);
-                m_ordered.emplace_front(std::make_pair(key, std::make_shared<V>(value)));
-                found->second = m_ordered.begin();
+                AutoSharedSRWLock lock(&m_lock);
+
+                found = m_search.find(key);
             }
-            else
-            {
-                if (m_maxSize == m_ordered.size())
-                {
-                    m_search.erase(m_ordered.back().first);
-                    m_ordered.pop_back();
-                }
 
-                m_ordered.emplace_front(std::make_pair(key, std::make_shared<V>(value)));
-                m_search.emplace(key, m_ordered.begin());
+            {
+                AutoExlusiveSRWLock lock(&m_lock);
+
+                if (m_search.end() != found)
+                {
+                    m_ordered.erase(found->second);
+                    m_ordered.emplace_front(std::make_pair(key, std::make_shared<V>(value)));
+                    found->second = m_ordered.begin();
+                }
+                else
+                {
+                    if (m_maxSize == m_ordered.size())
+                    {
+                        m_search.erase(m_ordered.back().first);
+                        m_ordered.pop_back();
+                    }
+
+                    m_ordered.emplace_front(std::make_pair(key, std::make_shared<V>(value)));
+                    m_search.emplace(key, m_ordered.begin());
+                }
             }
         }
 
@@ -85,18 +110,24 @@ namespace DZCodeChallangeMRU
         //      its order for cache removal
         //  Parameters :
         //    const K& key  - key of the element
-        //  Returns:  void
+        //  Returns:  
         //    std::shared_ptr<V> - value of the requested element. If an element with a requested key
         //                         is not in the cache nullptr is returned. Note that the returned type
         //                         is a shared_ptr and not a copy of the element. The 
         std::shared_ptr<V> at(const K& key)
         {
-            AutoExlusiveSRWLock lock(&m_lock);
+            std::unordered_map<K, typename std::list<ListEntryType>::iterator>::iterator found;
 
-            auto found = m_search.find(key);
+            {
+                AutoSharedSRWLock lock(&m_lock);
+
+                found = m_search.find(key);
+            }
 
             if (m_search.end() != found)
             {
+                AutoExlusiveSRWLock lock(&m_lock);
+
                 if (found->second != m_ordered.begin())
                 {
                     // Move the element to the head of the ordered list
@@ -104,7 +135,7 @@ namespace DZCodeChallangeMRU
 
                     found->second = m_ordered.begin();
                 }
-
+                
                 return found->second->second;
             }
 
@@ -116,14 +147,14 @@ namespace DZCodeChallangeMRU
 
         // Max number of elements to keep in the cache
         size_t m_maxSize;
-
-        // A map between key and value to enable look up in O(logN)
-        std::map<const K, typename std::list<ListEntryType>::iterator> m_search;
-
+        
+        // A map between key and value to enable look up in O(const)
+        std::unordered_map<K, typename std::list<ListEntryType>::iterator> m_search;
+        
         // List of pointers to held elements. The list is kept in access sequence order
         //  from most to least recent
         std::list<ListEntryType> m_ordered;
-
+        
         // Access lock 
         SRWLOCK m_lock;
     };
