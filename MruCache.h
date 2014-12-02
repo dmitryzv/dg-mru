@@ -70,17 +70,11 @@ namespace DZCodeChallangeMRU
             {
                 return;
             }
-            
-            std::unordered_map<K, typename std::list<ListEntryType>::iterator>::iterator found;
 
             {
                 AutoSharedSRWLock lock(&m_lock);
 
-                found = m_search.find(key);
-            }
-
-            {
-                AutoExlusiveSRWLock lock(&m_lock);
+                auto found = m_search.find(key);
 
                 if (m_search.end() != found)
                 {
@@ -128,6 +122,13 @@ namespace DZCodeChallangeMRU
             {
                 AutoExlusiveSRWLock lock(&m_lock);
 
+                // Double check that we are still good after lock upgrade
+                found = m_search.find(key);
+                if (m_search.end() == found)
+                {
+                    return nullptr;
+                }
+
                 if (found->second != m_ordered.begin())
                 {
                     // Move the element to the head of the ordered list
@@ -135,7 +136,7 @@ namespace DZCodeChallangeMRU
 
                     found->second = m_ordered.begin();
                 }
-                
+
                 return found->second->second;
             }
 
@@ -143,18 +144,19 @@ namespace DZCodeChallangeMRU
         }
 
     private:
+        // List entry type, contains a key for back reference and a shared ptr to the value object
         typedef std::pair<const K, std::shared_ptr<V>> ListEntryType;
 
         // Max number of elements to keep in the cache
         size_t m_maxSize;
-        
+
         // A map between key and value to enable look up in O(const)
         std::unordered_map<K, typename std::list<ListEntryType>::iterator> m_search;
-        
+
         // List of pointers to held elements. The list is kept in access sequence order
         //  from most to least recent
         std::list<ListEntryType> m_ordered;
-        
+
         // Access lock 
         SRWLOCK m_lock;
     };
