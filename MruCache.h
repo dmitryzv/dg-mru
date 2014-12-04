@@ -72,7 +72,7 @@ namespace DZCodeChallangeMRU
             }
 
             {
-                AutoSharedSRWLock lock(&m_lock);
+                AutoExlusiveSRWLock lock(&m_lock);
 
                 auto found = m_search.find(key);
 
