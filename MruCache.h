@@ -5,7 +5,7 @@
 #include <memory>
 #include <Windows.h>
 
-namespace DZCodeChallangeMRU
+namespace DZ_MRU
 {
     // To simplify locking/unlocking and avoid unreleased locks in case of an exception
     //  use helper class that aquires lock in constructor and releases in destructor
