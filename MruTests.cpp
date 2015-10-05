@@ -9,7 +9,7 @@ bool InsertWorks()
 {
     try
     {
-        DZCodeChallangeMRU::MruCache<int, std::string> mru(1);
+        DZ_MRU::MruCache<int, std::string> mru(1);
 
         mru.insert(1, std::string("1"));
     }
@@ -25,7 +25,7 @@ bool AtWorks()
 {
     try
     {
-        DZCodeChallangeMRU::MruCache<int, std::string> mru(1);
+        DZ_MRU::MruCache<int, std::string> mru(1);
 
         mru.insert(1, std::string("1"));
 
@@ -46,7 +46,7 @@ bool ObjectRemovedAfterReachingMaxSize()
 {
     try
     {
-        DZCodeChallangeMRU::MruCache<int, std::string> mru(1);
+        DZ_MRU::MruCache<int, std::string> mru(1);
 
         mru.insert(1, std::string("1"));
         mru.insert(2, std::string("2"));
@@ -68,7 +68,7 @@ bool ValueReplacedForSameKey()
 {
     try
     {
-        DZCodeChallangeMRU::MruCache<int, std::string> mru(1);
+        DZ_MRU::MruCache<int, std::string> mru(1);
 
         mru.insert(1, std::string("1"));
         mru.insert(1, std::string("2"));
@@ -90,7 +90,7 @@ bool LastAccessedObjectRemovedOnInsert()
 {
     try
     {
-        DZCodeChallangeMRU::MruCache<int, std::string> mru(2);
+        DZ_MRU::MruCache<int, std::string> mru(2);
 
         mru.insert(1, std::string("1"));
         mru.insert(2, std::string("2"));
@@ -132,7 +132,7 @@ bool Size0Works()
 {
     try
     {
-        DZCodeChallangeMRU::MruCache<int, std::string> mru(0);
+        DZ_MRU::MruCache<int, std::string> mru(0);
 
         mru.insert(1, std::string("1"));
 
